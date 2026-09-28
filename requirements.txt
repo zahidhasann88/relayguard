@@ -1,0 +1,15 @@
+# Runtime dependencies. Development and test tooling lives in requirements-dev.txt.
+Django>=6.0,<7.0
+djangorestframework>=3.16
+drf-spectacular>=0.28
+httpx>=0.28
+python-dotenv>=1.0
+redis>=5.0
+django-redis>=5.4
+celery>=5.4
+psycopg[binary]>=3.2
+gunicorn>=23.0
+uvicorn[standard]>=0.30
+# Gunicorn worker class for ASGI. A separate package because uvicorn's own
+# uvicorn.workers module is deprecated and slated for removal.
+uvicorn-worker>=0.3

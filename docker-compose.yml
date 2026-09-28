@@ -1,0 +1,86 @@
+x-django-env: &django-env
+  env_file: .env
+  environment:
+    DJANGO_DEBUG: "0"
+    DB_HOST: postgres
+    DB_PORT: "5432"
+    DB_NAME: ${DB_NAME:-relayguard_db}
+    DB_USER: ${DB_USER:-postgres}
+    DB_PASSWORD: ${DB_PASSWORD:-postgres}
+    REDIS_URL: redis://redis:6379/1
+    CELERY_BROKER_URL: redis://redis:6379/2
+
+x-django-depends: &django-depends
+  redis:
+    condition: service_healthy
+  postgres:
+    condition: service_healthy
+
+services:
+  web:
+    build: .
+    <<: *django-env
+    ports:
+      - "8000:8000"
+    depends_on: *django-depends
+    healthcheck:
+      # $$ escapes compose interpolation, so PORT is read inside the container.
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://127.0.0.1:$${PORT:-8000}/health/live', timeout=4)\""]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 20s
+    restart: unless-stopped
+
+  celery-worker:
+    build: .
+    <<: *django-env
+    command: celery -A config worker --loglevel=INFO
+    depends_on: *django-depends
+    healthcheck:
+      test: ["CMD-SHELL", "celery -A config inspect ping -d celery@$$HOSTNAME"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    restart: unless-stopped
+
+  celery-beat:
+    build: .
+    <<: *django-env
+    command: celery -A config beat --loglevel=INFO --schedule /tmp/celerybeat-schedule
+    depends_on: *django-depends
+    healthcheck:
+      disable: true
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: ${DB_NAME:-relayguard_db}
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres} -d ${DB_NAME:-relayguard_db}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+volumes:
+  redis_data:
+  postgres_data:

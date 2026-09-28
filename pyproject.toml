@@ -1,0 +1,49 @@
+[project]
+name = "relayguard"
+version = "1.0.0"
+description = "Django API gateway with API-key authentication, per-key rate limiting and async request logging."
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.12"
+
+[tool.ruff]
+line-length = 120
+target-version = "py312"
+extend-exclude = ["migrations", ".venv"]
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # import sorting
+    "B",   # bugbear
+    "UP",  # pyupgrade
+    "C4",  # comprehensions
+    "DJ",  # flake8-django
+]
+ignore = [
+    "B904",  # raise ... from ... is noisy in view code
+]
+
+[tool.ruff.lint.per-file-ignores]
+"config/settings.py" = ["E501"]
+"tests/*" = ["B011"]
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "config.settings"
+python_files = ["test_*.py", "*_test.py", "tests.py"]
+testpaths = ["tests"]
+addopts = "-ra --strict-markers"
+
+[tool.coverage.run]
+source = ["config", "proxyapi"]
+omit = ["*/migrations/*", "*/tests/*"]
+
+[tool.coverage.report]
+# The suite covers every line today; the floor leaves a little headroom.
+fail_under = 95
+show_missing = true
+
+[tool.bandit]
+exclude_dirs = ["tests", "proxyapi/migrations", ".venv"]

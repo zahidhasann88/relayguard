@@ -1,0 +1,9 @@
+# Development and CI tooling. Installs the runtime set as well.
+-r requirements.txt
+
+pytest>=8.0
+pytest-django>=4.11
+pytest-cov>=5.0
+ruff>=0.6
+bandit>=1.7
+pip-audit>=2.7
