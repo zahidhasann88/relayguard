@@ -12,4 +12,4 @@ gunicorn>=23.0
 uvicorn[standard]>=0.30
 # Gunicorn worker class for ASGI. A separate package because uvicorn's own
 # uvicorn.workers module is deprecated and slated for removal.
-uvicorn-worker>=0.3
+uvicorn-worker>=0.4.0
