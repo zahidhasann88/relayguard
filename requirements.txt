@@ -1,6 +1,6 @@
 # Runtime dependencies. Development and test tooling lives in requirements-dev.txt.
 Django>=6.0,<7.0
-djangorestframework>=3.16
+djangorestframework>=3.18.1
 drf-spectacular>=0.28
 httpx>=0.28
 python-dotenv>=1.2.3
